@@ -1,92 +1,110 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
-	<script src='./js/mapbox-src.js'></script>
-	<link href='./js/mapbox.css' rel='stylesheet' />
-	<!--[if lte IE 8]>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+    <script src='./js/mapbox-src.js'></script>
+    <link href='./js/mapbox.css' rel='stylesheet' />
+    <!--[if lte IE 8]>
 	<link href='http://api.tiles.mapbox.com/mapbox.js/v1.0.2/mapbox.ie.css' rel='stylesheet' >
 	<![endif]-->
-	<style>
-		body { margin:0; padding:0; }
-		#map { position:absolute; top:0; bottom:0; width:100%; }
-	</style>
+    <style>
+    body {
+        margin:0;
+        padding:0;
+    }
+    #map {
+        position:absolute;
+        top:0;
+        bottom:0;
+        width:100%;
+    }
+    </style>
 </head>
+
 <body>
-	<link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.css" />
-	<link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
-	<!--[if lte IE 8]>
+    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.css" />
+    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="css/classic.css">
+    <link rel="stylesheet" href="css/app.css">
+    <!--[if lte IE 8]>
 	<link rel="stylesheet" href="/assets/Leaflet.markercluster/MarkerCluster.Default.ie.css" />
 	<![endif]-->
-	<script src="./assets/Leaflet.markercluster/leaflet.markercluster-src.js"></script>
-	<script src="./js/jquery-2.0.2.js"></script>
-	<script src="./js/SliderControl.js"></script>
-	<link href="./js/jquery-ui.css" rel='stylesheet'/>
-	<script src="./js/jquery-ui.js"></script>
+    <script src="./assets/Leaflet.markercluster/leaflet.markercluster-src.js"></script>
+    <script src="./js/jquery-2.0.2.js"></script>
+    <script src="./js/SliderControl.js"></script>
+    <link href="./js/jquery-ui.css" rel='stylesheet' />
+    <script src="./js/jquery-ui.js"></script>
+    <script src="./js/jQDateRangeControl.js"></script>
+    <script src="./js/jQDateRangeSlider-min.js"></script>
 
-	<div id='map'></div>
-	<script type='text/javascript'>
-		var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm')
-		.setView([40, -74.50], 9);
-		var markers = new L.MarkerClusterGroup();
-		var allLayers = new Array();
-		var myGeoData;
-		var prevYear = '1993';
-		var currYear = '1993';
-		var sliderControl = L.control.sliderControl({position: "topright"});
+    <div id='map'></div>
+    <script type='text/javascript'>
+    var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm')
+        .setView([40, -74.50], 9);
+    var markers = new L.MarkerClusterGroup();
+    var allLayers = new Array();
+    var myGeoData;
+    var firstYear = 1993;
+    var lastYear = 2012;
+    var prevYear = firstYear;
+    var currYear = firstYear;
 
-		map.addControl(sliderControl);
+    $.when(
+        $.getJSON('./data/geojson/all.geojson', function(data) {
+            myGeoData = data;
+        })
+    ).done(initMap);
 
-		$.when(
-			$.getJSON('./data/geojson/all.geojson', function(data) {
-				myGeoData = data; }
-				)
-			).done(initMap);
+    function setMap(start, end) {
+        for (var i = start; i <= end; i++) {
+            allLayers[i] = L.geoJson(myGeoData, {
+                onEachFeature: function(feature, layer) {
+                    layer.bindPopup(feature.properties['grad-year'] + "<br>" + feature.properties.hometown + "<br>" + feature.properties.college);
+                },
+                filter: function(feature, layer) {
+                    return feature.properties['grad-year'] === i.toString();
+                }
+            });
+            allLayers[i].on('mouseover', function(e) {
+                e.layer.openPopup();
+            });
+            allLayers[i].on('mouseout', function(e) {
+                e.layer.closePopup();
+            });
+        }
+    }
 
-		function setMap(start, end) {
-			for( var i = start; i <= end; i++ ) {
-				allLayers[i] = L.geoJson(myGeoData, {
-					onEachFeature: function (feature, layer) {
-						layer.bindPopup(feature.properties['grad-year'] + "<br>"
-							+ feature.properties.hometown + "<br>"
-							+ feature.properties.college);
-					},
-					filter: function(feature, layer) {
-						return feature.properties['grad-year'] === i.toString();
-					}
-				});
-				allLayers[i].on('mouseover', function(e) {
-					e.layer.openPopup();
-				});
-				allLayers[i].on('mouseout', function(e) {
-					e.layer.closePopup();
-				});
-			}
-		}
+    function initMap() {
+        setMap(firstYear, lastYear);
+        for (var i = lastYear - 10; i <= lastYear - 5; i++) {
+            markers.addLayer(allLayers[i.toString()]);
+        }
+        map.addLayer(markers);
 
-		function initMap() {
-			setMap('1993', '1993');
-			addUISugar();
-		}
+        //Now add our control to the map
+        var control = new L.Control.DateSlider().addTo(map);
 
-		function makeMap() {
-			setMap('1994', '2011');
-		}
+        $("#dateSlider").on("valuesChanging", function(e, data) {
+            delay(resetMap(data) //We delay so that the user can slide it around before we notice they did something.
+                , 1000);
+        });
+        //resetMap();
+        //map.fitBounds(markers.getBounds());
+    }
 
-		function resetMap() {
-			markers.clearLayers();
-			for( var i = '1993'; i <= currYear; i++ ) {
-				markers.addLayer(allLayers[i.toString()]);
-			}
-		}
+    function resetMap(data) {
+        markers.clearLayers();
+        for (var i = data.values.min; i <= data.values.max; i++) {
+            markers.addLayer(allLayers[i.toString()]);
+        }
+    }
 
-		function addUISugar() {
-			resetMap();
-			map.addLayer(markers);
-			map.fitBounds(markers.getBounds());
-			sliderControl.startSlider();
-			setTimeout(makeMap, 1000);
-		}
-	</script>
+    function addUISugar() {
+
+
+    }
+    </script>
 </body>
+
 </html>
