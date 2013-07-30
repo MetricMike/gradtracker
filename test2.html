@@ -86,23 +86,18 @@
         var control = new L.Control.DateSlider().addTo(map);
 
         $("#dateSlider").on("valuesChanging", function(e, data) {
-            delay(resetMap(data) //We delay so that the user can slide it around before we notice they did something.
-                , 1000);
+            //We delay so that the user can slide it around before we notice they did something.
+            resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
         });
         //resetMap();
         //map.fitBounds(markers.getBounds());
     }
 
-    function resetMap(data) {
+    function resetMap(min, max) {
         markers.clearLayers();
-        for (var i = data.values.min; i <= data.values.max; i++) {
+        for (var i = min; i <= max; i++) {
             markers.addLayer(allLayers[i.toString()]);
         }
-    }
-
-    function addUISugar() {
-
-
     }
     </script>
 </body>
