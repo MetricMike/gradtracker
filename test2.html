@@ -85,8 +85,7 @@
         //Now add our control to the map
         var control = new L.Control.DateSlider().addTo(map);
 
-        $("#dateSlider").on("valuesChanging", function(e, data) {
-            //We delay so that the user can slide it around before we notice they did something.
+        $("#dateSlider").on("valuesChanged", function(e, data) {
             resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
         });
         //resetMap();
