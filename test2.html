@@ -3,11 +3,11 @@
 
 <head>
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
-  <link href='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css' rel='stylesheet' />
+  <link href='./css/mapbox.css' rel='stylesheet' />
   <!--[if lte IE 8]>
-    <link href='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.ie.css' rel='stylesheet' />
+    <link href='./css/mapbox.ie.css' rel='stylesheet' />
   <![endif]-->
-  <script src='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js'></script>
+  <script src='./js/mapbox.js'/>
     <style>
     body {
         margin:0;
@@ -20,24 +20,22 @@
         width:100%;
     }
     </style>
+
+    <link rel="stylesheet" href="./css/MarkerCluster.css" />
+    <link rel="stylesheet" href="./css/MarkerCluster.Default.css" />
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="./css/MarkerCluster.Default.ie.css" />
+    <![endif]-->
+    <script src="./js/leaflet.markercluster-src.js"></script>
+    <script src="./js/jquery-2.0.3.min.js"></script>
+    <script src="./js/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="./css/classic.css">
+    <link rel="stylesheet" href="./css/app.css">
+    <script src="./js/jQDateRangeControl.js"></script>
+    <script src="./js/jQDateRangeSlider-min.js"></script>
 </head>
 
 <body>
-    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.css" />
-    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="css/classic.css">
-    <link rel="stylesheet" href="css/app.css">
-    <!--[if lte IE 8]>
-	<link rel="stylesheet" href="/assets/Leaflet.markercluster/MarkerCluster.Default.ie.css" />
-	<![endif]-->
-    <script src="./assets/Leaflet.markercluster/leaflet.markercluster-src.js"></script>
-    <script src="./js/jquery-2.0.2.js"></script>
-    <script src="./js/SliderControl.js"></script>
-    <link href="./js/jquery-ui.css" rel='stylesheet' />
-    <script src="./js/jquery-ui.js"></script>
-    <script src="./js/jQDateRangeControl.js"></script>
-    <script src="./js/jQDateRangeSlider-min.js"></script>
-
     <div id='map'></div>
     <script type='text/javascript'>
     var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm')
