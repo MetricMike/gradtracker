@@ -74,8 +74,12 @@
 
     <div id='map'></div>
     <script type='text/javascript'>
-    var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm')
-        .setView([40, -74.50], 9);
+    var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm', {
+        center: [37.54, -77.43],
+        zoom: 8,
+        minZoom: 3,
+        maxZoom: 13
+    });
     var markers = new L.MarkerClusterGroup();
     var allLayers = new Array();
     var myGeoData;
@@ -83,7 +87,7 @@
     var lastYear = 2012;
     var prevYear = firstYear;
     var currYear = firstYear;
-    var zooms = 17;
+    var zooms = 10;
     var handle = document.getElementById('handle');
 
     $.when(
@@ -128,7 +132,7 @@
         // Round zoom so that numbers in the bar look presentable.
         map.on('zoomend', function() {
             var z = Math.round(map.getZoom());
-            zoom_bar.setValue(0, z / 16);
+            zoom_bar.setValue(3, z / 13);
             handle.innerHTML = z;
         });
         // Init zoom_bar
