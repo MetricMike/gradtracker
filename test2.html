@@ -25,20 +25,21 @@
 <body>
     <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.css" />
     <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="css/classic.css" />
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel='stylesheet' href="./js/jquery-ui.css" />
+    <link rel="stylesheet" href="./js/jquery-ui.css" />
+    <link rel="stylesheet" href="./css/iThing.css" />
     <!--[if lte IE 8]>
     <link rel="stylesheet" href="/assets/Leaflet.markercluster/MarkerCluster.Default.ie.css" />
     <![endif]-->
     <script src="./assets/Leaflet.markercluster/leaflet.markercluster-src.js"></script>
     <script src="./js/jquery-2.0.2.js"></script>
-    <script src="./js/SliderControl.js"></script>
     <script src="./js/jquery-ui.js"></script>
-    <script src="./js/jQDateRangeControl.js"></script>
-    <script src="./js/jQDateRangeSlider-min.js"></script>
+    <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
 
     <div id='map'></div>
+    <div id='ui-overlay'>
+        <div id="slider"></div>
+    </div>
+
     <script type='text/javascript'>
     var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm', {
         center: [37.54, -77.43],
@@ -86,12 +87,12 @@
         }
         map.addLayer(markers);
 
-        //Now add our control to the map
+        /*/Now add our control to the map
         var control = new L.Control.DateSlider().addTo(map);
 
         $("#dateSlider").on("valuesChanged", function(e, data) {
             resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
-        });
+        });*/
         //resetMap();
         //map.fitBounds(markers.getBounds());
     }
@@ -102,6 +103,41 @@
             markers.addLayer(allLayers[i.toString()]);
         }
     }
+
+    $("#slider").dateRangeSlider({
+        bounds: {
+            min: new Date(firstYear, 0, 1),
+            max: new Date(lastYear, 11, 31)
+        },
+        defaultValues: {
+            min: new Date(firstYear + (lastYear - firstYear) / 3, 0, 1),
+            max: new Date(lastYear - (lastYear - firstYear) / 3, 11, 31)
+        },
+        formatter: function(val) {
+            return val.getFullYear();
+        },
+        step: {
+            years: 1
+        },
+        scales: [{
+            first: function(value) {
+                return value;
+            },
+            end: function(value) {
+                return value;
+            },
+            next: function(value) {
+                var next = new Date(value);
+                return new Date(next.setYear(value.getFullYear() + 1));
+            },
+            label: function(value) {
+                return value.getFullYear();
+            },
+            format: function(tickContainer, tickStart, tickEnd) {
+                tickContainer.addClass("myCustomClass");
+            }
+        }]
+    });
     </script>
 </body>
 
