@@ -19,25 +19,6 @@
         bottom:0;
         width:100%;
     }
-    .leaflet-control-command-interior {
-        background-image: url(https://dl.dropboxusercontent.com/u/8283278/CDN/Leaflet/images/command.png);
-        width: 20px;
-        height: 20px;
-        background-position: 50% 50%;
-        background-repeat: no-repeat;
-        display: block;
-        padding: 3px;
-        border-radius: 4px;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        box-shadow: 0 1px 7px rgba(0, 0, 0, 0.65);
-        cursor: auto;
-        text-align: center;
-        background-color: #FFFFFF;
-    }
-    .leaflet-control-command-interior:hover {
-        background-color: #F4F4F4;
-    }
     </style>
 </head>
 
@@ -111,9 +92,6 @@
         $("#dateSlider").on("valuesChanged", function(e, data) {
             resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
         });
-
-        var animateControl = new L.Control.Animate({});
-        map.addControl(animateControl);
         //resetMap();
         //map.fitBounds(markers.getBounds());
     }
@@ -124,37 +102,6 @@
             markers.addLayer(allLayers[i.toString()]);
         }
     }
-
-    function AnimateDateSlider() {
-        alert("debugging");
-        // Flip "active" boolean; flip image to 'pause'
-        // OR - flip "active" boolean; flip image to 'play'
-        // Clear map.
-        // Render data for minYear; highlight portion of rule
-        // Add nextYear until maxYear
-        //
-
-    }
-
-    L.Control.Animate = L.Control.extend({
-        options: {
-            position: 'topleft',
-        },
-
-        onAdd: function(map) {
-            var controlDiv = L.DomUtil.create('div', 'leaflet-control-command');
-            L.DomEvent
-                .addListener(controlDiv, 'click', L.DomEvent.stopPropagation)
-                .addListener(controlDiv, 'click', L.DomEvent.preventDefault)
-                .addListener(controlDiv, 'click', function() {
-                    AnimateDateSlider();
-                });
-
-            var controlUI = L.DomUtil.create('div', 'leaflet-control-command-interior', controlDiv);
-            controlUI.title = 'Animate Dates';
-            return controlDiv;
-        }
-    });
     </script>
 </body>
 
