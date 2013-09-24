@@ -36,9 +36,6 @@
     <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
 
     <div id='map'></div>
-    <div id='ui-overlay'>
-        <div id="slider"></div>
-    </div>
 
     <script type='text/javascript'>
     var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm', {
@@ -54,6 +51,50 @@
     var lastYear = 2012;
     var prevYear = firstYear;
     var currYear = firstYear;
+
+    var MyControlSlider = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
+
+        onAdd: function(map) {
+            var sliderContainer = L.DomUtil.create('div', 'slider', this._container);
+
+            $(sliderContainer).mousedown( function() {
+                map.dragging.disable();
+            });
+
+            $(sliderContainer).dateRangeSlider({
+                bounds: {
+                    min: new Date(firstYear, 0, 1),
+                    max: new Date(lastYear, 11, 31)
+                },
+                defaultValues: {
+                    min: new Date(firstYear + (lastYear - firstYear) / 3, 0, 1),
+                    max: new Date(lastYear - (lastYear - firstYear) / 3, 11, 31)
+                },
+                formatter: function(val) {
+                    return val.getFullYear();
+                },
+                step: {
+                    years: 1
+                },
+                scales: [{
+                    next: function(value) {
+                        var next = new Date(value);
+                        return new Date(next.setYear(value.getFullYear() + 5));
+                    },
+                    label: function(value) {
+                        return value.getFullYear();
+                    }
+                }]
+            });
+
+            return sliderContainer;
+        }
+    });
+
+    map.addControl(new MyControlSlider());
 
     $.when(
         $.getJSON('./data/geojson/all.geojson', function(data) {
@@ -87,12 +128,12 @@
         }
         map.addLayer(markers);
 
-        /*/Now add our control to the map
-        var control = new L.Control.DateSlider().addTo(map);
+        //Now add our control to the map
+        //var control = new L.Control.DateSlider().addTo(map);
 
-        $("#dateSlider").on("valuesChanged", function(e, data) {
+        $(".slider").on("valuesChanged", function(e, data) {
             resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
-        });*/
+        });
         //resetMap();
         //map.fitBounds(markers.getBounds());
     }
@@ -103,41 +144,6 @@
             markers.addLayer(allLayers[i.toString()]);
         }
     }
-
-    $("#slider").dateRangeSlider({
-        bounds: {
-            min: new Date(firstYear, 0, 1),
-            max: new Date(lastYear, 11, 31)
-        },
-        defaultValues: {
-            min: new Date(firstYear + (lastYear - firstYear) / 3, 0, 1),
-            max: new Date(lastYear - (lastYear - firstYear) / 3, 11, 31)
-        },
-        formatter: function(val) {
-            return val.getFullYear();
-        },
-        step: {
-            years: 1
-        },
-        scales: [{
-            first: function(value) {
-                return value;
-            },
-            end: function(value) {
-                return value;
-            },
-            next: function(value) {
-                var next = new Date(value);
-                return new Date(next.setYear(value.getFullYear() + 1));
-            },
-            label: function(value) {
-                return value.getFullYear();
-            },
-            format: function(tickContainer, tickStart, tickEnd) {
-                tickContainer.addClass("myCustomClass");
-            }
-        }]
-    });
     </script>
 </body>
 
