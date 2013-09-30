@@ -25,6 +25,31 @@
     .btn {
         margin-top: 40px;
     }
+    #map-ui {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+    }
+    #map-ui ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    #map-ui li:last-child a {
+        border-bottom-width: 1px;
+        -webkit-border-radius: 0 0 3px 3px;
+        border-radius: 0 0 3px px;
+    }
+    #map-ui li:first-child a {
+        -webkit-border-radius: 3px 3px 0 0;
+        border-radius: 3px 3px 0 0;
+    }
+    #map-ui a.active {
+        background: #3887BE;
+        border-color: #3887BE;
+        color: #FFF;
+    }
     </style>
 </head>
 
@@ -44,7 +69,16 @@
     <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
 
 
-
+    <div id='map-ui'>
+        <ul>
+            <li><a href='#' class='active' id='filter-westhampton'>Show Westhampton Alumni</a>
+            </li>
+            <li><a href='#' class='active' id='filter-richmond'>Show Richmond Alumni</a>
+            </li>
+            <li><a href='#' class='active' id='filter-all'>Show All Alumni</a>
+            </li>
+        </ul>
+    </div>
     <div id='map'></div>
 
     <script type='text/javascript'>
@@ -122,7 +156,7 @@
                 transition: "all 1s"
             }).appendTo(".ui-rangeSlider-container");
 
-            var width = parseFloat( $(".ui-rangeSlider-bar").css("width") );
+            var width = parseFloat($(".ui-rangeSlider-bar").css("width"));
             var sliderValues = $(".slider").dateRangeSlider("values");
             sliderValues.min = sliderValues.min.getFullYear();
             sliderValues.max = sliderValues.max.getFullYear();
@@ -175,6 +209,48 @@
             });
         }
     }
+
+    $("#filter-westhampton").click(function() {
+        $("#filter-westhampton").addClass("active");
+        $("#filter-richmond").removeClass("active");
+        $("#filter-all").removeClass("active");
+
+        $.each(allLayers, function(key, value) {
+            value = L.geoJson(myGeoData, {
+                filter: function(feature, layer) {
+                    return (feature.properties['grad-year'] === key.toString()) && (feature.properties['college'] === "Westhampton");
+                }
+            });
+        })
+    });
+
+    $("#filter-richmond").click(function() {
+        $("#filter-richmond").addClass("active");
+        $("#filter-westhampton").removeClass("active");
+        $("#filter-all").removeClass("active");
+
+        $.each(allLayers, function(key, value) {
+            value = L.geoJson(myGeoData, {
+                filter: function(feature, layer) {
+                    return (feature.properties['grad-year'] === key.toString()) && (feature.properties['college'] === "Richmond");
+                }
+            });
+        })
+    });
+
+    $("#filter-all").click(function() {
+        $("#filter-all").addClass("active");
+        $("#filter-richmond").removeClass("active");
+        $("#filter-westhampton").removeClass("active");
+
+        $.each(allLayers, function(key, value) {
+            value = L.geoJson(myGeoData, {
+                filter: function(feature, layer) {
+                    return feature.properties['grad-year'] === key.toString();
+                }
+            });
+        })
+    });
 
     function initMap() {
         setMap(firstYear, lastYear);
