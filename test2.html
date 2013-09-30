@@ -19,6 +19,12 @@
         bottom:0;
         width:100%;
     }
+    .uiContainer {
+        display: flex;
+    }
+    .btn {
+        margin-top: 40px;
+    }
     </style>
 </head>
 
@@ -27,6 +33,8 @@
     <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="./js/jquery-ui.css" />
     <link rel="stylesheet" href="./css/iThing.css" />
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
     <!--[if lte IE 8]>
     <link rel="stylesheet" href="/assets/Leaflet.markercluster/MarkerCluster.Default.ie.css" />
     <![endif]-->
@@ -34,6 +42,8 @@
     <script src="./js/jquery-2.0.2.js"></script>
     <script src="./js/jquery-ui.js"></script>
     <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
+
+
 
     <div id='map'></div>
 
@@ -58,10 +68,16 @@
         },
 
         onAdd: function(map) {
-            var sliderContainer = L.DomUtil.create('div', 'slider', this._container);
+            var uiContainer = L.DomUtil.create('div', 'uiContainer');
+            var toggleContainer = L.DomUtil.create('button', 'btn', uiContainer);
+            var iconContainer = L.DomUtil.create('i', 'icon-play', toggleContainer);
+            var sliderContainer = L.DomUtil.create('div', 'slider', uiContainer);
 
-            $(sliderContainer).mousedown( function() {
+            $(uiContainer).mousedown(function() {
                 map.dragging.disable();
+            });
+            $(document).mouseup(function() {
+                map.dragging.enable();
             });
 
             $(sliderContainer).dateRangeSlider({
@@ -90,11 +106,50 @@
                 }]
             });
 
-            return sliderContainer;
+            return uiContainer;
         }
     });
 
     map.addControl(new MyControlSlider());
+
+    $("button").click(function() {
+        if ($("i").hasClass("icon-play")) {
+            $("i").switchClass("icon-play", "icon-stop");
+
+            $(".ui-rangeSlider-bar").clone().attr("id", "animated-bar").css({
+                width: 0,
+                "background-color": "#33cc00",
+                transition: "all 1s"
+            }).appendTo(".ui-rangeSlider-container");
+
+            var width = parseFloat( $(".ui-rangeSlider-bar").css("width") );
+            var sliderValues = $(".slider").dateRangeSlider("values");
+            sliderValues.min = sliderValues.min.getFullYear();
+            sliderValues.max = sliderValues.max.getFullYear();
+            var diff = sliderValues.max - sliderValues.min;
+            var partWidth = width / diff;
+            var i = 0;
+            var currYear = sliderValues.min;
+
+            function animate() {
+                if (i < width) {
+                    i += partWidth;
+                    currYear++;
+                    $("#animated-bar").css("width", i);
+                    resetMap(sliderValues.min, currYear);
+                    console.log("Moved animated-bar " + i + " pixels.");
+                    setTimeout(animate, 1000);
+                } else { // already moved to max
+                    $("button").click();
+                }
+            }
+
+            animate();
+        } else if ($("i").hasClass("icon-stop")) {
+            $("i").switchClass("icon-stop", "icon-play");
+            $("#animated-bar").remove();
+        }
+    });
 
     $.when(
         $.getJSON('./data/geojson/all.geojson', function(data) {
