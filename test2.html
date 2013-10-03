@@ -3,8 +3,8 @@
 
 <head>
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
-    <script src='./js/mapbox-src.js'></script>
-    <link href='./js/mapbox.css' rel='stylesheet' />
+    <script src='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js'></script>
+    <link href='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css' rel='stylesheet' />
     <!--[if lte IE 8]>
     <link href='http://api.tiles.mapbox.com/mapbox.js/v1.0.2/mapbox.ie.css' rel='stylesheet' >
     <![endif]-->
@@ -25,31 +25,6 @@
     .btn {
         margin-top: 40px;
     }
-    #map-ui {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 100;
-    }
-    #map-ui ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-    #map-ui li:last-child a {
-        border-bottom-width: 1px;
-        -webkit-border-radius: 0 0 3px 3px;
-        border-radius: 0 0 3px px;
-    }
-    #map-ui li:first-child a {
-        -webkit-border-radius: 3px 3px 0 0;
-        border-radius: 3px 3px 0 0;
-    }
-    #map-ui a.active {
-        background: #3887BE;
-        border-color: #3887BE;
-        color: #FFF;
-    }
     </style>
 </head>
 
@@ -68,17 +43,6 @@
     <script src="./js/jquery-ui.js"></script>
     <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
 
-
-    <div id='map-ui'>
-        <ul>
-            <li><a href='#' class='active' id='filter-westhampton'>Show Westhampton Alumni</a>
-            </li>
-            <li><a href='#' class='active' id='filter-richmond'>Show Richmond Alumni</a>
-            </li>
-            <li><a href='#' class='active' id='filter-all'>Show All Alumni</a>
-            </li>
-        </ul>
-    </div>
     <div id='map'></div>
 
     <script type='text/javascript'>
@@ -89,12 +53,19 @@
         maxZoom: 13
     });
     var markers = new L.MarkerClusterGroup();
-    var allLayers = new Array();
+    var mapLayerGroups = {};
+    mapLayerGroups['Richmond'] = [];
+    mapLayerGroups['Westhampton'] = [];
+    var controlMapLayerGroups = {
+        "Richmond Students": new L.layerGroup(),
+        "Westhampton Students": new L.layerGroup()
+    };
     var myGeoData;
     var firstYear = 1993;
     var lastYear = 2012;
     var prevYear = firstYear;
     var currYear = firstYear;
+    var timer = null;
 
     var MyControlSlider = L.Control.extend({
         options: {
@@ -172,7 +143,7 @@
                     $("#animated-bar").css("width", i);
                     resetMap(sliderValues.min, currYear);
                     console.log("Moved animated-bar " + i + " pixels.");
-                    setTimeout(animate, 1000);
+                    timer = setTimeout(animate, 1000);
                 } else { // already moved to max
                     $("button").click();
                 }
@@ -182,6 +153,9 @@
         } else if ($("i").hasClass("icon-stop")) {
             $("i").switchClass("icon-stop", "icon-play");
             $("#animated-bar").remove();
+            clearTimeout(timer);
+            var sliderValues = $(".slider").dateRangeSlider("values");
+            resetMap(sliderValues.min.getFullYear(), sliderValues.max.getFullYear());
         }
     });
 
@@ -191,88 +165,50 @@
         })
     ).done(initMap);
 
-    function setMap(start, end) {
-        for (var i = start; i <= end; i++) {
-            allLayers[i] = L.geoJson(myGeoData, {
-                onEachFeature: function(feature, layer) {
-                    layer.bindPopup(feature.properties['grad-year'] + "<br>" + feature.properties.hometown + "<br>" + feature.properties.college);
-                },
-                filter: function(feature, layer) {
-                    return feature.properties['grad-year'] === i.toString();
-                }
-            });
-            allLayers[i].on('mouseover', function(e) {
-                e.layer.openPopup();
-            });
-            allLayers[i].on('mouseout', function(e) {
-                e.layer.closePopup();
-            });
+    function setMap() {
+        L.geoJson(myGeoData, {
+            onEachFeature: onEachFeature
+        });
+
+        function onEachFeature(feature, featureLayer) {
+            featureLayer.bindPopup(feature.properties['grad-year'] + "<br>" + feature.properties.hometown + "<br>" + feature.properties.college);
+
+            var lg = mapLayerGroups[feature.properties.college][feature.properties['grad-year']];
+            if (lg === undefined) {
+                lg = new L.layerGroup();
+                mapLayerGroups[feature.properties.college][feature.properties['grad-year']] = lg;
+            }
+
+            lg.addLayer(featureLayer);
         }
     }
 
-    $("#filter-westhampton").click(function() {
-        $("#filter-westhampton").addClass("active");
-        $("#filter-richmond").removeClass("active");
-        $("#filter-all").removeClass("active");
-
-        $.each(allLayers, function(key, value) {
-            value = L.geoJson(myGeoData, {
-                filter: function(feature, layer) {
-                    return (feature.properties['grad-year'] === key.toString()) && (feature.properties['college'] === "Westhampton");
-                }
-            });
-        })
-    });
-
-    $("#filter-richmond").click(function() {
-        $("#filter-richmond").addClass("active");
-        $("#filter-westhampton").removeClass("active");
-        $("#filter-all").removeClass("active");
-
-        $.each(allLayers, function(key, value) {
-            value = L.geoJson(myGeoData, {
-                filter: function(feature, layer) {
-                    return (feature.properties['grad-year'] === key.toString()) && (feature.properties['college'] === "Richmond");
-                }
-            });
-        })
-    });
-
-    $("#filter-all").click(function() {
-        $("#filter-all").addClass("active");
-        $("#filter-richmond").removeClass("active");
-        $("#filter-westhampton").removeClass("active");
-
-        $.each(allLayers, function(key, value) {
-            value = L.geoJson(myGeoData, {
-                filter: function(feature, layer) {
-                    return feature.properties['grad-year'] === key.toString();
-                }
-            });
-        })
-    });
-
     function initMap() {
-        setMap(firstYear, lastYear);
-        for (var i = lastYear - 10; i <= lastYear - 5; i++) {
-            markers.addLayer(allLayers[i.toString()]);
+        setMap();
+        map.addControl(new L.control.layers(null, controlMapLayerGroups));
+        for (var i = lastYear - 10, end = lastYear - 5; i <= end; i++) {
+            markers.addLayer(mapLayerGroups['Richmond'][i]);
+            markers.addLayer(mapLayerGroups['Westhampton'][i]);
         }
-        map.addLayer(markers);
+        markers.on('mouseover', function (e) {
+            e.layer.openPopup();
+        });
+        markers.on('mouseout', function (e) {
+            e.layer.closePopup();
+        });
 
-        //Now add our control to the map
-        //var control = new L.Control.DateSlider().addTo(map);
+        map.addLayer(markers);
 
         $(".slider").on("valuesChanged", function(e, data) {
             resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
         });
-        //resetMap();
-        //map.fitBounds(markers.getBounds());
     }
 
     function resetMap(min, max) {
         markers.clearLayers();
         for (var i = min; i <= max; i++) {
-            markers.addLayer(allLayers[i.toString()]);
+            markers.addLayer(mapLayerGroups['Richmond'][i]);
+            markers.addLayer(mapLayerGroups['Westhampton'][i]);
         }
     }
     </script>
