@@ -46,12 +46,6 @@
     <div id='map'></div>
 
     <script type='text/javascript'>
-    var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm', {
-        center: [37.54, -77.43],
-        zoom: 8,
-        minZoom: 3,
-        maxZoom: 13
-    });
     var markers = new L.MarkerClusterGroup();
     var mapLayerGroups = {};
     mapLayerGroups['Richmond'] = [];
@@ -60,12 +54,26 @@
         "Richmond Students": new L.layerGroup(),
         "Westhampton Students": new L.layerGroup()
     };
+
+    var map = L.mapbox.map('map', 'eckemp.map-k87gbmbm', {
+        center: [37.54, -77.43],
+        zoom: 8,
+        minZoom: 3,
+        maxZoom: 13,
+        layers: [controlMapLayerGroups['Richmond Students'], controlMapLayerGroups['Westhampton Students']]
+    });
+
     var myGeoData;
+
     var firstYear = 1993;
     var lastYear = 2012;
     var prevYear = firstYear;
     var currYear = firstYear;
     var timer = null;
+    var sliderMin = null;
+    var sliderMax = null;
+    var richmondVisible = true;
+    var westhamptonVisible = true;
 
     var MyControlSlider = L.Control.extend({
         options: {
@@ -115,50 +123,6 @@
         }
     });
 
-    map.addControl(new MyControlSlider());
-
-    $("button").click(function() {
-        if ($("i").hasClass("icon-play")) {
-            $("i").switchClass("icon-play", "icon-stop");
-
-            $(".ui-rangeSlider-bar").clone().attr("id", "animated-bar").css({
-                width: 0,
-                "background-color": "#33cc00",
-                transition: "all 1s"
-            }).appendTo(".ui-rangeSlider-container");
-
-            var width = parseFloat($(".ui-rangeSlider-bar").css("width"));
-            var sliderValues = $(".slider").dateRangeSlider("values");
-            sliderValues.min = sliderValues.min.getFullYear();
-            sliderValues.max = sliderValues.max.getFullYear();
-            var diff = sliderValues.max - sliderValues.min;
-            var partWidth = width / diff;
-            var i = 0;
-            var currYear = sliderValues.min;
-
-            function animate() {
-                if (i < width) {
-                    i += partWidth;
-                    currYear++;
-                    $("#animated-bar").css("width", i);
-                    resetMap(sliderValues.min, currYear);
-                    console.log("Moved animated-bar " + i + " pixels.");
-                    timer = setTimeout(animate, 1000);
-                } else { // already moved to max
-                    $("button").click();
-                }
-            }
-
-            animate();
-        } else if ($("i").hasClass("icon-stop")) {
-            $("i").switchClass("icon-stop", "icon-play");
-            $("#animated-bar").remove();
-            clearTimeout(timer);
-            var sliderValues = $(".slider").dateRangeSlider("values");
-            resetMap(sliderValues.min.getFullYear(), sliderValues.max.getFullYear());
-        }
-    });
-
     $.when(
         $.getJSON('./data/geojson/all.geojson', function(data) {
             myGeoData = data;
@@ -185,31 +149,108 @@
 
     function initMap() {
         setMap();
-        map.addControl(new L.control.layers(null, controlMapLayerGroups));
-        for (var i = lastYear - 10, end = lastYear - 5; i <= end; i++) {
-            markers.addLayer(mapLayerGroups['Richmond'][i]);
-            markers.addLayer(mapLayerGroups['Westhampton'][i]);
-        }
-        markers.on('mouseover', function (e) {
+        resetMap(lastYear - 10, lastYear - 5);
+
+        markers.on('mouseover', function(e) {
             e.layer.openPopup();
         });
-        markers.on('mouseout', function (e) {
+        markers.on('mouseout', function(e) {
             e.layer.closePopup();
         });
 
         map.addLayer(markers);
 
+        map.addControl(new L.control.layers(null, controlMapLayerGroups));
+
         $(".slider").on("valuesChanged", function(e, data) {
-            resetMap(data.values.min.getFullYear(), data.values.max.getFullYear());
+            updateMinMax();
+            resetMap(sliderMin, sliderMax);
+        });
+
+        map.on('overlayadd', function(ol) {
+            updateMinMax();
+            if (ol.name === "Richmond Students") {
+                console.log('Adding Richmond Students');
+                richmondVisible = true;
+                resetMap(sliderMin, sliderMax);
+            } else if (ol.name === "Westhampton Students") {
+                console.log('Adding Westhampton Students');
+                westhamptonVisible = true;
+                resetMap(sliderMin, sliderMax);
+            }
+        });
+
+        map.on('overlayremove', function(ol) {
+            updateMinMax();
+            if (ol.name === "Richmond Students") {
+                console.log('Removing Richmond Students');
+                richmondVisible = false;
+                resetMap(sliderMin, sliderMax);
+            } else if (ol.name === "Westhampton Students") {
+                console.log('Removing Westhampton Students');
+                westhamptonVisible = false;
+                resetMap(sliderMin, sliderMax);
+            }
+        });
+
+        map.addControl(new MyControlSlider());
+
+        $("button").click(function() {
+            if ($("i").hasClass("icon-play")) {
+                $("i").switchClass("icon-play", "icon-stop");
+
+                $(".ui-rangeSlider-bar").clone().attr("id", "animated-bar").css({
+                    width: 0,
+                    "background-color": "#33cc00",
+                    transition: "all 1s"
+                }).appendTo(".ui-rangeSlider-container");
+
+                var width = parseFloat($(".ui-rangeSlider-bar").css("width"));
+                updateMinMax();
+                var diff = sliderMax - sliderMin;
+                var partWidth = width / diff;
+                var i = 0;
+                var currYear = sliderMin;
+
+                function animate() {
+                    if (i < width) {
+                        i += partWidth;
+                        currYear++;
+                        $("#animated-bar").css("width", i);
+                        resetMap(sliderMin, currYear);
+                        console.log("Moved animated-bar " + i + " pixels.");
+                        timer = setTimeout(animate, 1000);
+                    } else { // already moved to max
+                        $("button").click();
+                    }
+                }
+
+                animate();
+            } else if ($("i").hasClass("icon-stop")) {
+                $("i").switchClass("icon-stop", "icon-play");
+                $("#animated-bar").remove();
+                clearTimeout(timer);
+                updateMinMax();
+                resetMap(sliderMin, sliderMax);
+            }
         });
     }
 
     function resetMap(min, max) {
         markers.clearLayers();
         for (var i = min; i <= max; i++) {
-            markers.addLayer(mapLayerGroups['Richmond'][i]);
-            markers.addLayer(mapLayerGroups['Westhampton'][i]);
+            if (richmondVisible) {
+                markers.addLayer(mapLayerGroups['Richmond'][i]);
+            }
+            if (westhamptonVisible) {
+                markers.addLayer(mapLayerGroups['Westhampton'][i]);
+            }
         }
+    }
+
+    function updateMinMax() {
+        sliderMin = $(".slider").dateRangeSlider("values").min.getFullYear();
+        sliderMax = $(".slider").dateRangeSlider("values").max.getFullYear();
     }
     </script>
 </body>
