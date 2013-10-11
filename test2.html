@@ -222,9 +222,14 @@
                 var partWidth = width / diff;
                 var i = 0;
                 var currYear = sliderMin;
+                var equalWidth = width/10; // when more than 10 years, want slider to only have 10 steps
+                var equalIncrement = diff/10; // when more than 10 years, want slider to only have 10 steps
 
                 function animate() {
-                    if (i < width) {
+                    
+                    if(diff<10) // less than 10 years, do each year
+                    {
+                         if (i < width-1) {
                         i += partWidth;
                         currYear++;
                         $("#animated-bar").css("width", i);
@@ -234,7 +239,28 @@
                     } else { // already moved to max
                         $("button").click();
                     }
+                    }
+                    else // when more than 10 years, want slider to only have 10 steps
+                    {
+
+                    if (i < width-1) {
+                        i += equalWidth;
+                        currYear+=equalIncrement; // increment year by equalIncrement instead of 1
+                        $("#animated-bar").css("width", i);
+                        resetMap(sliderMin, currYear);
+                        console.log("Moved animated-bar " + i + " pixels.");
+                        timer = setTimeout(animate, 1000);
+                    } else { // already moved to max
+                        $("button").click();
+                    }
                 }
+                }
+
+                // NOTE: when 7, 13, 14, or 18 years, the slider was moving 1 too many times.
+                // The problem was with i<width because i+partWidth was not actually 
+                // getting bigger than width until it went through the loop another time 
+                // because of rounding issues. I think we just need to be less strict
+                // with the i<width so i did i<width-1 and all values work but that can be changed.
 
                 animate();
             } else if ($("i").hasClass("icon-stop")) {
