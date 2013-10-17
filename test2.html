@@ -9,6 +9,21 @@
     <link href='http://api.tiles.mapbox.com/mapbox.js/v1.0.2/mapbox.ie.css' rel='stylesheet' >
     <![endif]-->
     <!-- body and map are used to make everything fullscreen. "display: flex" is the only layout option that lets buttons flow appropriately -->
+    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.css" />
+    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="/assets/Leaflet.markercluster/MarkerCluster.Default.ie.css" />
+    <![endif]-->
+    <link rel="stylesheet" href="./js/jquery-ui.css" />
+    <link rel="stylesheet" href="./css/iThing.css" />
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/colorbox.css" />
+    <script src="./assets/Leaflet.markercluster/leaflet.markercluster-src.js"></script>
+    <script src="./js/jquery-2.0.2.js"></script>
+    <script src="./js/jquery-ui.js"></script>
+    <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
+    <script src="./js/jquery.colorbox.js"></script>
     <style>
     body {
         margin:0;
@@ -30,20 +45,6 @@
 </head>
 
 <body>
-    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.css" />
-    <link rel="stylesheet" href="./assets/Leaflet.markercluster/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="./js/jquery-ui.css" />
-    <link rel="stylesheet" href="./css/iThing.css" />
-    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
-    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
-    <!--[if lte IE 8]>
-    <link rel="stylesheet" href="/assets/Leaflet.markercluster/MarkerCluster.Default.ie.css" />
-    <![endif]-->
-    <script src="./assets/Leaflet.markercluster/leaflet.markercluster-src.js"></script>
-    <script src="./js/jquery-2.0.2.js"></script>
-    <script src="./js/jquery-ui.js"></script>
-    <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
-
     <div id='map'></div>
 
     <script type='text/javascript'>
@@ -127,6 +128,20 @@
         }
     });
 
+    var MyDistanceMap = L.Control.extend({
+        options: {
+            position: 'topright'
+        },
+
+        onAdd: function(map) {
+            var uiContainer = L.DomUtil.create('div', 'uiContainer');
+            var toggleContainer = L.DomUtil.create('button2', 'btn', uiContainer);
+            var iconContainer = L.DomUtil.create('i', 'icon-globe', toggleContainer);
+
+            return uiContainer;
+        }
+    });
+
     // load geojson asynchronously so we don't lockup the UI
     $.when(
         $.getJSON('./data/geojson/all.geojson', function(data) {
@@ -135,6 +150,7 @@
     ).done(initMap);
 
     // Initializes the marker data
+
     function setMap() {
         L.geoJson(myGeoData, {
             onEachFeature: onEachFeature
@@ -154,6 +170,7 @@
     }
 
     // Initializes the UI
+
     function initMap() {
         setMap();
         resetMap(lastYear - 10, lastYear - 5);
@@ -203,6 +220,7 @@
         });
 
         map.addControl(new MyControlSlider());
+        map.addControl(new MyDistanceMap());
 
         $("button").click(function() {
             if ($("i").hasClass("icon-play")) {
