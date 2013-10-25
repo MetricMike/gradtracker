@@ -24,6 +24,8 @@
     <script src="./js/jquery-ui.js"></script>
     <script src="./js/jQDateRangeSlider-withRuler-min.js"></script>
     <script src="./js/jquery.colorbox.js"></script>
+    <script type="text/javascript"> script $("button2").colorbox({width:"60%", height:"300px", inline:true, href:"button2"});></script>
+
     <style>
     body {
         margin:0;
@@ -286,12 +288,21 @@
                 $("#animated-bar").remove();
                 clearTimeout(timer); // stop any queued animations
                 updateMinMax();
-                resetMap(sliderMin, sliderMax);
-            }
-        });
+                resetMap(sliderMin, sliderMax)
+;            
+}        });
 
         $("button2").click(function() {
             console.log("I have been clicked!");
+             $("button2").colorbox({
+                width:"60%", 
+                height:"520px",
+                html: "<div id='slider1'></div>",
+                onComplete:function(){
+                    //need to animate and move location of slider
+                  $(".ui-rangeSlider").clone().attr("id", "animated-bar").appendTo("#slider1");
+              }
+            });
         });
     }
 
