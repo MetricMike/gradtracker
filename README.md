@@ -3,12 +3,16 @@ Prepping the Data
 
 Requires:
 
-> - csv-splitter.sh (included in /utilities)
 > - [csv2geojson][2]
 
-1. The code below assumes PowerShell on a Windows PC. I also don't think this is accurate anymore, but I haven't had to convert csv to geojson in like 6 months, soooo...
-2. Use csv-splitter.sh to split by date `$ ./csv-splitter.sh original.csv`
-3. Convert to geojson using csv2geojson `$ for f in ./*; do csv2geojson $ f > "${f%.csv}.geojson"; done`
+1. The code below assumes PowerShell on a Windows PC.
+2. Distance formula: `=ACOS(COS(RADIANS(90-37.54097))*COS(RADIANS(90-$C2))+SIN(RADIANS(90-37.54097))*SIN(RADIANS(90-$C2))*COS(RADIANS(-77.432889-$D2)))*3958.756`
+3. Count formula:  
+	a. Assuming Microsoft Excel: Use an advanced filter to copy only unique values to another part of the sheet.
+	b. `=CONCATENATE(A2,B2,C2,D2,E2,F2)` on both datasets.
+	c. `=COUNTIF(G:G, O2)` to provide a count.
+	d. Copy and Paste Values only on the filtered data. Save as csv somewhere.
+2. Convert to geojson using csv2geojson `$ csv2geojson somefile.geojson`
 
 ---
 
