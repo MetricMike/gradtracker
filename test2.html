@@ -171,11 +171,6 @@
         // This controls the overlays in the topright.
         map.addControl(new L.control.layers(null, controlMapLayerGroups));
 
-        $(".slider").on("valuesChanged", function(e, data) {
-            updateMinMax();
-            resetMap(sliderMin, sliderMax);
-        });
-
         map.on('overlayadd', function(ol) {
             updateMinMax();
             if (ol.name === "Richmond Students") {
@@ -203,6 +198,11 @@
         });
 
         map.addControl(new MyControlSlider());
+
+        $(".slider").on("valuesChanged", function(e, data) {
+            updateMinMax();
+            resetMap(sliderMin, sliderMax);
+        });
 
         $("button").click(function() {
             if ($("i").hasClass("icon-play")) {
